@@ -6,6 +6,8 @@
 <title>문자 메이커</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 <style>
 :root{
   --bg:#faf7f9; --surface:#ffffff; --line:#efe9ed; --field:#f6f2f5;
@@ -48,10 +50,11 @@ body{font-family:'Pretendard',sans-serif;-webkit-font-smoothing:antialiased;
 .parts{display:flex;flex-direction:column;gap:7px;}
 .part{display:flex;align-items:center;gap:11px;background:var(--field);border-radius:14px;padding:7px 10px;transition:.16s;}
 .part.isme{background:var(--accent-soft);}
-.pav{width:38px;height:38px;border-radius:50%;flex-shrink:0;cursor:pointer;overflow:hidden;background:var(--av-bg);position:relative;display:flex;align-items:center;justify-content:center;}
-.pav img{width:100%;height:100%;object-fit:cover;}
+.pav{width:38px;height:38px;border-radius:50%;flex-shrink:0;cursor:pointer;background:var(--av-bg);position:relative;display:flex;align-items:center;justify-content:center;}
+.pav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .pav .cam{position:absolute;font-size:13px;opacity:.5;}
 .pav img+.cam{display:none;}
+.pav .pdel{position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--ink);color:#fff;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--surface);}
 .pname{flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mebtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 14px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:.16s;flex-shrink:0;}
 .mebtn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -80,10 +83,13 @@ textarea.ooc::placeholder{color:var(--faint);}
 .copybtn:hover{filter:brightness(1.15);}
 
 .stage{position:sticky;top:30px;}
-.stage-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:0 2px;}
-.stage-bar .ttl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.2px;}
-.btn.save{background:var(--accent);color:#fff;padding:10px 22px;box-shadow:0 6px 16px rgba(255,93,143,.28);}
+.stage-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:0 2px;gap:10px;}
+.stage-bar .ttl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.2px;margin-right:auto;}
+.btn.save{background:var(--accent);color:#fff;padding:10px 18px;box-shadow:0 6px 16px rgba(255,93,143,.28);}
 .btn.save:hover{transform:translateY(-1px);}
+.btn.gif{background:var(--surface);color:var(--accent);border:1px solid var(--accent-soft);padding:10px 18px;}
+.btn.gif:hover{background:var(--accent-soft);}
+.btn:disabled{opacity:.6;cursor:default;}
 .preview-frame{display:flex;justify-content:center;}
 
 #chatCard{width:380px;max-width:100%;border-radius:26px;overflow:hidden;box-shadow:0 16px 44px rgba(120,70,95,.16);
@@ -112,8 +118,7 @@ textarea.ooc::placeholder{color:var(--faint);}
 .bub.pic{padding:0!important;background:transparent!important;border-radius:0!important;position:relative;}
 .bub.pic::after{display:none!important;}
 .bub.pic img.msgimg{display:block;width:auto;max-width:190px;max-height:250px;border-radius:15px;}
-.bub.pic .del{position:absolute;top:-7px;right:-7px;width:21px;height:21px;border-radius:50%;background:rgba(20,15,18,.65);color:#fff;border:2px solid #fff;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;}
-.bub.pic:hover .del{opacity:1;}
+.bub.pic .del{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:rgba(20,15,18,.6);color:#fff;border:2px solid #fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .bub.slot{cursor:pointer;background:rgba(0,0,0,.035)!important;color:var(--meta)!important;border:1.5px dashed rgba(0,0,0,.14);border-radius:15px!important;padding:20px 24px!important;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;min-width:120px;}
 .bub.slot::after{display:none!important;}
 .bub.slot:hover{background:rgba(0,0,0,.06)!important;}
@@ -121,7 +126,6 @@ textarea.ooc::placeholder{color:var(--faint);}
 .msg.me .meta{align-items:flex-end;}
 .meta .read{color:var(--right-bg);font-weight:700;}
 .topdate{align-self:center;font-size:11px;margin:2px 0 12px;}
-
 .sys{align-self:center;font-size:11px;margin:9px 0;color:var(--meta);background:rgba(0,0,0,.05);padding:5px 13px;border-radius:999px;}
 
 .skin-kakao .bub{border-radius:15px;}
@@ -143,7 +147,8 @@ textarea.ooc::placeholder{color:var(--faint);}
 .skin-imessage .topdate span{color:var(--meta);font-weight:600;}
 .skin-imessage .meta{font-size:9.5px;}
 
-.exporting .del{display:none!important;}
+.exporting{border-radius:0!important;box-shadow:none!important;}
+.exporting .del,.exporting .pdel{display:none!important;}
 .exporting .bub.slot{display:none!important;}
 
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 22px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:99;}
@@ -154,7 +159,7 @@ textarea.ooc::placeholder{color:var(--faint);}
 <div class="wrap">
   <div class="head">
     <h1>문자 메이커<span class="dot">.</span></h1>
-    <p>OOC를 붙여넣으면 예쁜 문자창으로 — 카톡 · 아이메시지 · 사진 · PNG 저장</p>
+    <p>OOC를 붙여넣으면 예쁜 문자창으로 — 카톡 · 아이메시지 · 사진 · PNG/GIF 저장</p>
   </div>
 
   <div class="layout">
@@ -178,7 +183,7 @@ textarea.ooc::placeholder{color:var(--faint);}
       </div>
 
       <div class="sec">
-        <div class="lab">참여자 <small>프로필 클릭=사진</small></div>
+        <div class="lab">참여자 <small>프로필 클릭=사진 · ×=삭제</small></div>
         <div class="parts" id="parts"><div class="empty">문자를 붙여넣으면 자동으로 떠요</div></div>
         <button class="swapbtn" id="swapBtn" style="display:none">↔  좌우 전환</button>
       </div>
@@ -208,6 +213,7 @@ textarea.ooc::placeholder{color:var(--faint);}
     <div class="stage">
       <div class="stage-bar">
         <span class="ttl">미리보기</span>
+        <button class="btn gif" id="gifBtn">GIF 저장</button>
         <button class="btn save" id="saveBtn">PNG 저장</button>
       </div>
       <div class="preview-frame">
@@ -307,10 +313,11 @@ function refreshParts(){const names=[];
   if(!names.length){box.innerHTML='<div class="empty">문자를 붙여넣으면 자동으로 떠요</div>';return;}
   names.forEach(n=>{const av=state.avatars[n];
     const d=document.createElement('div');d.className='part'+(n===state.meName?' isme':'');
-    d.innerHTML=`<div class="pav">${av?`<img src="${av}">`:''}<span class="cam">📷</span></div>
+    d.innerHTML=`<div class="pav">${av?`<img src="${av}"><span class="pdel">×</span>`:''}<span class="cam">📷</span></div>
       <span class="pname">${escapeHTML(n)}</span>
       <button class="mebtn ${n===state.meName?'on':''}">${n===state.meName?'나 ✓':'나'}</button>`;
     d.querySelector('.pav').onclick=()=>pickAvatar(n);
+    const pd=d.querySelector('.pdel');if(pd)pd.onclick=ev=>{ev.stopPropagation();delete state.avatars[n];refreshParts();render();};
     d.querySelector('.mebtn').onclick=()=>setMe(n);
     box.appendChild(d);});}
 function setMe(n){state.meName=n;
@@ -322,25 +329,28 @@ function pickAvatar(name){const inp=document.createElement('input');inp.type='fi
 function pickSlot(idx){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.slotPhotos[idx]=r.result;render();};r.readAsDataURL(f);};inp.click();}
 
-function render(){
+function render(limit){
+  if(limit===undefined)limit=null;
   const partner=state.parts.find(n=>n===state.roomName)||state.parts.find(n=>n!==state.meName)||state.parts[0];
   const hAv=partner&&state.avatars[partner];
-  $('#headerAv').src=hAv||'';
-  $('#headerAv').parentElement.style.visibility=(state.skin==='imessage'||hAv)?'visible':'hidden';
+  const himg=$('#headerAv');
+  if(hAv){himg.src=hAv;himg.style.display='';}
+  else{himg.removeAttribute('src');himg.style.display='none';}
+  himg.parentElement.style.visibility=(state.skin==='imessage'||hAv)?'visible':'hidden';
 
   const box=$('#msgs');box.innerHTML='';
 
-  // top date: first === divider, else first date found in a time field
   let topDate='';
   const firstDiv=state.parsed.find(o=>o.type==='date');
   if(firstDiv)topDate=firstDiv.text;
   else{for(const o of state.parsed){if(o.type==='msg'){const dm=o.time.match(DATE_RE);if(dm){topDate=dm[0];break;}}}}
   if(topDate){const d=document.createElement('div');d.className='topdate';d.innerHTML=`<span>${escapeHTML(topDate)}</span>`;box.appendChild(d);}
 
-  let prevSender=null,prevType=null,slotCounter=0;
-  state.parsed.forEach(o=>{
-    if(o.type==='date'){prevType='date';prevSender=null;return;} // dates not shown inline
-    if(o.type==='sys'){const d=document.createElement('div');d.className='sys';d.textContent=o.text;box.appendChild(d);prevSender=null;prevType='sys';return;}
+  let prevSender=null,prevType=null,slotCounter=0,shown=0;
+  for(const o of state.parsed){
+    if(o.type==='date'){prevType='date';prevSender=null;continue;}
+    if(limit!=null&&shown>=limit)break;
+    if(o.type==='sys'){const d=document.createElement('div');d.className='sys';d.textContent=o.text;box.appendChild(d);prevSender=null;prevType='sys';shown++;continue;}
 
     const isMe=o.sender===state.meName;
     const cont=prevType==='msg'&&prevSender===o.sender;
@@ -360,7 +370,7 @@ function render(){
         bubbles.push(b);
       } else {
         const clean=sanitize(pt.v).trim();
-        if(clean.replace(/<[^>]+>/g,'').trim()!==''||(/<img|<br/i.test(clean))){const b=document.createElement('div');b.className='bub';b.innerHTML=clean;bubbles.push(b);}
+        if(clean.replace(/<[^>]+>/g,'').trim()!==''||/<img|<br/i.test(clean)){const b=document.createElement('div');b.className='bub';b.innerHTML=clean;bubbles.push(b);}
       }
     });
     if(!bubbles.length){const b=document.createElement('div');b.className='bub';bubbles.push(b);}
@@ -374,10 +384,9 @@ function render(){
       col.appendChild(wrap);});
 
     row.appendChild(av);row.appendChild(col);box.appendChild(row);
-    prevSender=o.sender;prevType='msg';
-  });
+    prevSender=o.sender;prevType='msg';shown++;
+  }
 
-  // wire slot/delete clicks
   box.querySelectorAll('.bub.slot').forEach(el=>el.onclick=()=>pickSlot(parseInt(el.dataset.slot)));
   box.querySelectorAll('.bub.pic .del').forEach(el=>el.onclick=ev=>{ev.stopPropagation();delete state.slotPhotos[parseInt(el.dataset.del)];render();});
 
@@ -391,16 +400,67 @@ $('#clearBtn').onclick=()=>{$('#ooc').value='';state.parsed=[];state.roomEdited=
 $('#oocTpl').textContent=OOC_TEMPLATE;
 $('#copyOoc').onclick=()=>{navigator.clipboard.writeText(OOC_TEMPLATE).then(()=>toast('OOC 양식 복사 완료'),()=>toast('복사 실패'));};
 
+function themeBg(){const t=THEMES.find(x=>x.key===state.theme);return t?t.bg:'#ffffff';}
+let FONT_CSS=null;
+async function snapCanvas(scale,fontCss){
+  if(window.htmlToImage&&htmlToImage.toCanvas){
+    const opt={pixelRatio:scale,cacheBust:true,backgroundColor:themeBg()};
+    if(fontCss)opt.fontEmbedCSS=fontCss;
+    return await htmlToImage.toCanvas(card,opt);
+  }
+  const W=card.offsetWidth,H=card.offsetHeight;
+  return await html2canvas(card,{scale,backgroundColor:themeBg(),useCORS:true,logging:false,width:W,height:H,windowWidth:W});
+}
+
 $('#saveBtn').onclick=async function(){this.textContent='저장 중…';this.disabled=true;
+  card.classList.add('exporting');
   try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;
-    card.classList.add('exporting');
-    const canvas=await html2canvas(card,{scale:2,backgroundColor:null,useCORS:true,logging:false});
+    const c=await snapCanvas(2);
     card.classList.remove('exporting');
-    const a=document.createElement('a');a.download=(state.roomName||'문자')+'.png';a.href=canvas.toDataURL('image/png');a.click();toast('저장 완료');
-  }catch(e){card.classList.remove('exporting');toast('저장 실패');console.error(e);}
+    const a=document.createElement('a');a.download=(state.roomName||'문자')+'.png';a.href=c.toDataURL('image/png');a.click();toast('저장 완료');
+  }catch(e){console.error(e);
+    try{const W=card.offsetWidth,H=card.offsetHeight;
+      const c=await html2canvas(card,{scale:2,backgroundColor:themeBg(),useCORS:true,logging:false,width:W,height:H,windowWidth:W});
+      card.classList.remove('exporting');
+      const a=document.createElement('a');a.download=(state.roomName||'문자')+'.png';a.href=c.toDataURL('image/png');a.click();toast('저장 완료');
+    }catch(e2){card.classList.remove('exporting');toast('저장 실패');console.error(e2);}
+  }
   this.textContent='PNG 저장';this.disabled=false;};
 
-let tt;function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),1500);}
+let gifWorkerURL=null;
+async function ensureWorker(){if(gifWorkerURL)return gifWorkerURL;
+  const r=await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');
+  gifWorkerURL=URL.createObjectURL(new Blob([await r.text()],{type:'application/javascript'}));return gifWorkerURL;}
+
+$('#gifBtn').onclick=async function(){
+  const steps=state.parsed.filter(o=>o.type!=='date').length;
+  if(!steps){toast('문자를 먼저 입력해 주세요');return;}
+  const btn=this;btn.disabled=true;$('#saveBtn').disabled=true;btn.textContent='준비 중…';
+  try{
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    const worker=await ensureWorker();
+    render(null);
+    const W=card.offsetWidth,H=card.offsetHeight,scale=2;
+    card.style.height=H+'px';card.classList.add('exporting');
+    if(window.htmlToImage&&htmlToImage.getFontEmbedCSS){try{FONT_CSS=FONT_CSS||await htmlToImage.getFontEmbedCSS(card);}catch(e){FONT_CSS=null;}}
+    const gif=new GIF({workers:2,quality:10,width:Math.round(W*scale),height:Math.round(H*scale),workerScript:worker,background:'#ffffff'});
+    const maxFrames=40,inc=Math.max(1,Math.ceil(steps/maxFrames));
+    for(let shown=inc;;shown+=inc){
+      const i=Math.min(shown,steps);
+      render(i);
+      const c=await snapCanvas(scale,FONT_CSS);
+      gif.addFrame(c,{delay:i>=steps?2000:650,copy:true});
+      btn.textContent=`캡처 ${i}/${steps}`;
+      if(i>=steps)break;
+    }
+    card.style.height='';card.classList.remove('exporting');render(null);
+    gif.on('progress',p=>{btn.textContent=`GIF ${Math.round(p*100)}%`;});
+    gif.on('finished',blob=>{const a=document.createElement('a');a.download=(state.roomName||'문자')+'.gif';a.href=URL.createObjectURL(blob);a.click();toast('GIF 저장 완료');btn.textContent='GIF 저장';btn.disabled=false;$('#saveBtn').disabled=false;});
+    gif.render();
+  }catch(e){console.error(e);card.style.height='';card.classList.remove('exporting');render(null);toast('GIF 저장 실패 — 새로고침 후 다시 시도');btn.textContent='GIF 저장';btn.disabled=false;$('#saveBtn').disabled=false;}
+};
+
+let tt;function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),1700);}
 
 applyTheme();refreshParts();render();
 </script>
