@@ -49,9 +49,9 @@ body{font-family:'Pretendard',sans-serif;-webkit-font-smoothing:antialiased;
 .parts{display:flex;flex-direction:column;gap:7px;}
 .part{display:flex;align-items:center;gap:11px;background:var(--field);border-radius:14px;padding:7px 10px;transition:.16s;}
 .part.isme{background:var(--accent-soft);}
-.pav{width:38px;height:38px;border-radius:50%;flex-shrink:0;cursor:pointer;background:var(--av-bg);background-size:cover;background-position:center;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.pav{width:38px;height:38px;border-radius:50%;flex-shrink:0;cursor:pointer;background:var(--av-bg);background-size:cover;background-position:center;position:relative;display:flex;align-items:center;justify-content:center;}
 .pav .cam{position:absolute;font-size:13px;opacity:.5;}
-.pav .pdel{position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--ink);color:#fff;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--surface);z-index:2;}
+.pav .pdel{position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--ink);color:#fff;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--surface);}
 .pname{flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mebtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 14px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:.16s;flex-shrink:0;}
 .mebtn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -95,9 +95,8 @@ textarea.ooc::placeholder{color:var(--faint);}
   --left-bg:#fff;--left-text:#3a2a30;--right-bg:#ff6fa0;--right-bg2:#ff8fb3;--right-text:#fff;--meta:#bd8aa0;background:var(--bg);}
 .ccHeader{display:flex;align-items:center;gap:11px;padding:15px 17px;background:var(--header-bg);color:var(--header-text);}
 .ccHeader .arrow{font-size:23px;line-height:1;opacity:.95;}
-/* FIX: hav is overflow:hidden so img fills it cleanly */
 .ccHeader .hav{width:34px;height:34px;border-radius:50%;background:var(--av-bg);background-size:cover;background-position:center;overflow:hidden;flex-shrink:0;display:block;}
-.ccHeader .hav img{display:none;width:100%;height:100%;object-fit:cover;object-position:center;}
+.ccHeader .hav img{display:none;}
 .ccHeader .hname{flex:1;font-size:16px;font-weight:700;}
 .ccHeader .menu{letter-spacing:2px;opacity:.9;font-size:17px;}
 
@@ -106,10 +105,7 @@ textarea.ooc::placeholder{color:var(--faint);}
 .msg{display:flex;gap:8px;align-items:flex-start;margin-top:10px;}
 .msg.cont{margin-top:3px;}
 .msg.me{flex-direction:row-reverse;}
-/* FIX: av is overflow:hidden so img fills it cleanly; no background-image needed when img present */
 .av{width:37px;height:37px;border-radius:50%;flex-shrink:0;overflow:hidden;background:var(--av-bg);background-size:cover;background-position:center;margin-top:18px;}
-/* FIX: img inside .av for sharp export */
-.av img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
 .msg.cont .av{margin-top:0;}
 .msg.me .av{margin-top:0;}
 .av.ghost{visibility:hidden;}
@@ -140,9 +136,11 @@ textarea.ooc::placeholder{color:var(--faint);}
 .skin-imessage .ccHeader .hname{font-size:13px;}
 .skin-imessage .nm,.skin-imessage .av{display:none;}
 .skin-imessage .bcol{max-width:76%;}
-.skin-imessage .bub{border-radius:19px;}
-.skin-imessage .left .bub:not(.pic){background:var(--left-bg);color:var(--left-text);border-bottom-left-radius:4px;}
-.skin-imessage .me .bub:not(.pic){background:linear-gradient(180deg,var(--right-bg2),var(--right-bg));color:var(--right-text);border-bottom-right-radius:4px;}
+.skin-imessage .bub{border-radius:19px;position:relative;}
+.skin-imessage .left .bub:not(.pic){background:var(--left-bg);color:var(--left-text);border-bottom-left-radius:6px;}
+.skin-imessage .me .bub:not(.pic){background:linear-gradient(180deg,var(--right-bg2),var(--right-bg));color:var(--right-text);border-bottom-right-radius:6px;}
+.skin-imessage .left .bub:not(.pic)::after{content:"";position:absolute;left:-5px;bottom:0;width:13px;height:15px;background:var(--left-bg);border-bottom-right-radius:13px;z-index:-1;}
+.skin-imessage .me .bub:not(.pic)::after{content:"";position:absolute;right:-5px;bottom:0;width:13px;height:15px;background:var(--right-bg);border-bottom-left-radius:13px;z-index:-1;}
 .skin-imessage .topdate span{color:var(--meta);font-weight:600;}
 .skin-imessage .meta{font-size:9.5px;}
 
@@ -263,7 +261,7 @@ const OOC_TEMPLATE=`*[OOC: 이전 RP 중지. 새로운 상황 전개. NPC와 PC 
 
 < 발신인 / 시간 >
 [ (사진) ]
-[ 사진 서술 ]
+[ (사진 서술) ]
 
 메시지 내용에는 PC와 NPC의 감정이나 상태에 따라 HTML 형식 사용 가능. 필요할 경우 오타를 내도 괜찮으며, 최소 3,000자 이상 서술할 것.]*`;
 
@@ -338,21 +336,6 @@ const DATE_RE=/(\d{4}년\s*)?\d{1,2}월\s*\d{1,2}일(\s*[월화수목금토일]�
 function clockOnly(t){const c=t.match(/((오전|오후|AM|PM|am|pm)\s*)?\d{1,2}:\d{2}/);if(c)return c[0].trim();return t.replace(DATE_RE,'').trim();}
 function escapeHTML(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-// FIX: helper to create an avatar element using <img> for crisp html2canvas rendering
-function makeAvEl(className, src){
-  const div=document.createElement('div');
-  div.className=className;
-  if(src){
-    // Use <img> tag instead of background-image — html2canvas renders img at full resolution
-    div.style.background='transparent';
-    const img=document.createElement('img');
-    img.src=src;
-    img.style.cssText='display:block;width:100%;height:100%;object-fit:cover;object-position:center;';
-    div.appendChild(img);
-  }
-  return div;
-}
-
 function refreshParts(){const names=[];
   state.parsed.forEach(o=>{if(o.type==='msg'&&!names.includes(o.sender))names.push(o.sender);});
   state.parts=names;
@@ -364,7 +347,6 @@ function refreshParts(){const names=[];
   if(!names.length){box.innerHTML='<div class="empty">문자를 붙여넣으면 자동으로 떠요</div>';return;}
   names.forEach(n=>{const av=state.avatars[n];
     const d=document.createElement('div');d.className='part'+(n===state.meName?' isme':'');
-    // .pav in the control panel still uses background-image (not exported, so quality doesn't matter)
     d.innerHTML=`<div class="pav"${av?` style="background-image:url('${av}')"`:''}>${av?'<span class="pdel">×</span>':'<span class="cam">📷</span>'}</div>
       <span class="pname">${escapeHTML(n)}</span>
       <button class="mebtn ${n===state.meName?'on':''}">${n===state.meName?'나 ✓':'나'}</button>`;
@@ -383,8 +365,7 @@ function cropSquare(dataUrl,size,cb){const img=new Image();
     try{ctx.drawImage(img,sx,sy,s,s,0,0,size,size);cb(c.toDataURL('image/png'));}catch(e){cb(dataUrl);}};
   img.onerror=()=>cb(dataUrl);img.src=dataUrl;}
 function pickAvatar(name){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  // FIX: increased from 256 to 512 — higher internal resolution for sharper PNG/GIF export
-  inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>cropSquare(r.result,512,sq=>{state.avatars[name]=sq;refreshParts();render();});r.readAsDataURL(f);};inp.click();}
+  inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>cropSquare(r.result,256,sq=>{state.avatars[name]=sq;refreshParts();render();});r.readAsDataURL(f);};inp.click();}
 function pickSlot(idx){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.slotPhotos[idx]=r.result;render();};r.readAsDataURL(f);};inp.click();}
 
@@ -392,32 +373,9 @@ function render(limit){
   if(limit===undefined)limit=null;
   const partner=state.parts.find(n=>n===state.roomName)||state.parts.find(n=>n!==state.meName)||state.parts[0];
   const hAv=partner&&state.avatars[partner];
-
-  // FIX: header avatar — use <img> element for crisp export
   const hav=$('#chatCard .hav');
-  const himg=$('#headerAv');
-  if(state.skin==='imessage'){
-    hav.style.display='block';
-    if(hAv){
-      himg.src=hAv;
-      himg.style.cssText='display:block;width:100%;height:100%;object-fit:cover;object-position:center;';
-      hav.style.background='transparent';
-    }else{
-      himg.style.display='none';
-      hav.style.background='';
-    }
-  }else{
-    if(hAv){
-      hav.style.display='block';
-      himg.src=hAv;
-      himg.style.cssText='display:block;width:100%;height:100%;object-fit:cover;object-position:center;';
-      hav.style.background='transparent';
-    }else{
-      hav.style.display='none';
-      himg.style.display='none';
-      hav.style.background='';
-    }
-  }
+  if(state.skin==='imessage'){hav.style.display='block';hav.style.backgroundImage=hAv?`url("${hAv}")`:'';}
+  else{if(hAv){hav.style.display='block';hav.style.backgroundImage=`url("${hAv}")`;}else{hav.style.display='none';hav.style.backgroundImage='';}}
 
   msgsEl.innerHTML='';
   const sc=document.createElement('div');sc.id='scroller';msgsEl.appendChild(sc);
@@ -442,15 +400,9 @@ function render(limit){
     const cont=prevType==='msg'&&prevSender===o.sender;
     const row=document.createElement('div');row.className='msg '+(isMe?'me':'left')+(cont?' cont':'');
     const senderAv=state.avatars[o.sender];
-
-    // FIX: use makeAvEl() which creates <img> inside div for crisp html2canvas output
     let av=null;
-    if(!isMe){
-      av=makeAvEl('av'+(cont?' ghost':''), senderAv||null);
-    }else if(senderAv){
-      av=makeAvEl('av'+(cont?' ghost':''), senderAv);
-    }
-
+    if(!isMe){av=document.createElement('div');av.className='av'+(cont?' ghost':'');if(senderAv)av.style.backgroundImage=`url("${senderAv}")`;}
+    else if(senderAv){av=document.createElement('div');av.className='av'+(cont?' ghost':'');av.style.backgroundImage=`url("${senderAv}")`;}
     const col=document.createElement('div');col.className='bcol';
     if(!isMe&&!cont){const nm=document.createElement('div');nm.className='nm';nm.textContent=o.sender;col.appendChild(nm);}
 
@@ -467,8 +419,7 @@ function render(limit){
     flush();
     if(!bubbles.length){const b=document.createElement('div');b.className='bub';bubbles.push(b);}
 
-    bubbles.forEach((b,bi)=>{const wrap=document.createElement('div');wrap.className='bubwrap';
-      wrap.appendChild(b);
+    bubbles.forEach((b,bi)=>{const wrap=document.createElement('div');wrap.className='bubwrap';wrap.appendChild(b);
       if(bi===bubbles.length-1){const meta=document.createElement('div');meta.className='meta';
         const readMark=(state.showRead&&isMe)?'<span class="read">읽음</span>':'';
         const tt=showT[pi]?clockOnly(o.time):'';
@@ -498,7 +449,6 @@ $('#copyOoc').onclick=()=>{navigator.clipboard.writeText(OOC_TEMPLATE).then(()=>
 $('#saveBtn').onclick=async function(){this.textContent='저장 중…';this.disabled=true;
   card.classList.add('exporting');
   try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;
-    await new Promise(r=>setTimeout(r,100));
     const c=await html2canvas(card,{scale:3,backgroundColor:themeBg(),useCORS:true,logging:false});
     card.classList.remove('exporting');
     const a=document.createElement('a');a.download=(state.roomName||'문자')+'.png';a.href=c.toDataURL('image/png');a.click();toast('저장 완료');
