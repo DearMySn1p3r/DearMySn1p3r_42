@@ -196,7 +196,7 @@ textarea.ooc::placeholder{color:var(--faint);}
         <textarea class="ooc" id="ooc" spellcheck="false" placeholder="&lt; 발신인 / 시간 &gt;&#10;[ 메시지 내용 ]"></textarea>
         <div class="hint">
           형식 <code>&lt; 발신인 / 시간 &gt;</code> 다음 줄 <code>[ 내용 ]</code><br>
-          꾸미기 <code>^^굵게^^</code> <code>**기울임**</code> <code>++크게++</code> <code>--취소선--</code> <code>color:red;>빨강</code><br>
+          꾸미기 <code>^^굵게^^</code> <code>**기울임**</code> <code>++크게++</code> <code>--취소선--</code> <code>red&gt;빨강</code><br>
           <b>사진</b> 본문에 <code>(사진)</code> → 미리보기에서 그 글자를 <b>클릭</b>해 사진 넣기. 안 넣으면 그대로 <b>(사진)</b> 글자로 표시돼요<br>
           괄호 안 괄호 <code>[ [중요] ]</code> 그대로 출력 · 안내문 <code>[[ 시스템 ]]</code> · 날짜는 맨 위 한 번
         </div>
@@ -322,8 +322,15 @@ function sanitize(h){let s=h;
   s=s.replace(/<\s*(script|style|iframe|object|embed|link|meta)[^>]*\/?>/gi,'');
   s=s.replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,'');
   s=s.replace(/javascript:/gi,'');return s;}
+const _colorProbe=document.createElement('span');
+function isColor(v){_colorProbe.style.color='';_colorProbe.style.color=v;return _colorProbe.style.color!=='';}
 function fmt(seg){let c=seg,spans=0;
+  // 구버전 호환: color:red;>
   c=c.replace(/color\s*:\s*([^;>]+?)\s*;\s*>/gi,(_,col)=>{spans++;return `<span style="color:${col.trim()}">`;});
+  // 신버전: red>  /  #ff0000>
+  c=c.replace(/(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)\s*>/g,(m,col)=>{
+    if(!isColor(col.trim()))return m;
+    spans++;return `<span style="color:${col.trim()}">`;});
   c=c.replace(/\+\+([\s\S]+?)\+\+/g,'<span style="font-size:1.4em">$1</span>');
   c=c.replace(/\^\^([\s\S]+?)\^\^/g,'<b>$1</b>');
   c=c.replace(/\*\*([\s\S]+?)\*\*/g,'<i>$1</i>');
