@@ -140,9 +140,11 @@ textarea.ooc::placeholder{color:var(--faint);}
 .skin-imessage .bcol{max-width:76%;}
 .skin-imessage .bub{border-radius:19px;position:relative;}
 .skin-imessage .left .bub:not(.pic){background:var(--left-bg);color:var(--left-text);border-bottom-left-radius:6px;}
-.skin-imessage .me .bub:not(.pic){background:linear-gradient(180deg,var(--right-bg2),var(--right-bg));color:var(--right-text);border-bottom-right-radius:6px;}
-.skin-imessage .left .bub:not(.pic)::after{content:"";position:absolute;left:-5px;bottom:0;width:13px;height:15px;background:var(--left-bg);border-bottom-right-radius:13px;z-index:-1;}
-.skin-imessage .me .bub:not(.pic)::after{content:"";position:absolute;right:-5px;bottom:0;width:13px;height:15px;background:var(--right-bg);border-bottom-left-radius:13px;z-index:-1;}
+.skin-imessage .me .bub:not(.pic){background:var(--right-bg);color:var(--right-text);border-bottom-right-radius:6px;}
+.skin-imessage .left .bub:not(.pic)::before{content:"";position:absolute;z-index:0;bottom:0;left:-7px;width:16px;height:15px;background:var(--left-bg);border-bottom-right-radius:14px;}
+.skin-imessage .left .bub:not(.pic)::after{content:"";position:absolute;z-index:1;bottom:0;left:-20px;width:20px;height:34px;background:var(--bg);border-bottom-right-radius:11px;}
+.skin-imessage .me .bub:not(.pic)::before{content:"";position:absolute;z-index:0;bottom:0;right:-7px;width:16px;height:15px;background:var(--right-bg);border-bottom-left-radius:14px;}
+.skin-imessage .me .bub:not(.pic)::after{content:"";position:absolute;z-index:1;bottom:0;right:-20px;width:20px;height:34px;background:var(--bg);border-bottom-left-radius:11px;}
 .skin-imessage .topdate span{color:var(--meta);font-weight:600;}
 .skin-imessage .meta{font-size:9.5px;}
 
