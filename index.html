@@ -251,18 +251,8 @@ textarea.ooc::placeholder{color:var(--faint);}
 
 /* 라인 */
 .skin-line .bub{border-radius:18px;padding:8px 13px;}
-/* LINE 꼬리: border 삼각형/회전 사각형 대신 clip-path를 사용해
-   html2canvas에서 1px 흰 틈이나 톱니처럼 보이는 현상을 최소화 */
-.skin-line .msg.left:not(.cont) .bw-first .bub:not(.pic)::before{
-  content:"";position:absolute;top:0;left:-5px;width:9px;height:11px;
-  background:var(--c-left);clip-path:polygon(0 0,100% 0,100% 100%);
-  -webkit-clip-path:polygon(0 0,100% 0,100% 100%);z-index:0;
-}
-.skin-line .msg.me:not(.cont) .bw-first .bub:not(.pic)::before{
-  content:"";position:absolute;top:0;right:-5px;width:9px;height:11px;
-  background:var(--c-right);clip-path:polygon(0 0,0 100%,100% 0);
-  -webkit-clip-path:polygon(0 0,0 100%,100% 0);z-index:0;
-}
+.skin-line .msg.left:not(.cont) .bw-first .bub:not(.pic)::before{content:"";position:absolute;top:0;left:-7px;width:0;height:0;border-top:11px solid var(--c-left);border-left:10px solid transparent;}
+.skin-line .msg.me:not(.cont) .bw-first .bub:not(.pic)::before{content:"";position:absolute;top:0;right:-7px;width:0;height:0;border-top:11px solid var(--c-right);border-right:10px solid transparent;}
 .skin-line .msg.left:not(.cont) .bw-first .bub:not(.pic){border-top-left-radius:3px;}
 .skin-line .msg.me:not(.cont) .bw-first .bub:not(.pic){border-top-right-radius:3px;}
 .skin-line .msg{gap:10px;}
