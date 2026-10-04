@@ -546,14 +546,16 @@ textarea.ooc{min-height:150px;padding:10px 12px;font-size:12.5px;line-height:1.6
 .skin-retro .bub.stk img.msgimg{border:none;box-shadow:none;}
 .haswall.skin-imessage .bub::before,.haswall.skin-imessage .bub::after{display:none!important;}
 /* 답장 */
-.rq{display:block;padding:1px 0 7px;margin-bottom:7px;border-bottom:1px solid rgba(0,0,0,.1);font-size:12px;line-height:1.4;white-space:nowrap;}
+.rq{display:block;width:0;min-width:100%;overflow:hidden;padding:1px 0 7px;margin-bottom:7px;border-bottom:1px solid rgba(0,0,0,.1);font-size:12px;line-height:1.4;white-space:nowrap;}
+.bub.hasq{min-width:min(190px,100%);}
+.rq b,.rq span{overflow:hidden;white-space:nowrap;}
 .rq b{display:block;font-weight:600;}
 .rq span{display:block;opacity:.6;}
 .skin-line .rq{border-bottom:none;border-left:2.5px solid rgba(0,0,0,.18);padding:0 0 0 8px;margin:2px 0 7px;}
 .qwrap{display:flex;flex-direction:column;gap:3px;margin-bottom:-2px;}
 .msg.me .qwrap{align-items:flex-end;}
 .qlab{font-size:11px;color:var(--c-meta);margin:0 4px;}
-.qbub{padding:6px 12px;border-radius:16px;font-size:12.5px;line-height:1.4;background:var(--c-left);color:var(--c-leftT);opacity:.5;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.qbub{padding:6px 12px;border-radius:16px;font-size:12.5px;line-height:1.4;background:var(--c-left);color:var(--c-leftT);opacity:.5;white-space:nowrap;max-width:min(230px,100%);overflow:hidden;}
 .skin-instagram .qbub{border-radius:18px;}
 .skin-imessage .msg.me .qbub,.skin-instagram .msg.me .qbub{background:var(--c-left);}
 .qline{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--c-meta);white-space:nowrap;overflow:hidden;margin:0 0 2px;min-width:0;}
@@ -1066,7 +1068,7 @@ function pickAvatar(key){const inp=document.createElement('input');inp.type='fil
 function pickStk(idx){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.stkPhotos[idx]=r.result;render();};r.readAsDataURL(f);};inp.click();}
 function plainQuote(q){const t=fmt(q).replace(/<[^>]+>/g,'').replace(/\(\s*(사진|이미지|image)\s*\)/gi,'사진').replace(/\(\s*(스티커|이모티콘|sticker)\s*\)/gi,'이모티콘').replace(/\s+/g,' ').trim();
-  return t.length>26?t.slice(0,26)+'…':t;}
+  return t.length>60?t.slice(0,60)+'…':t;}
 function flatText(t){return fmt(t).replace(/<[^>]+>/g,'').replace(/&[a-z]+;/g,'').replace(/\s+/g,'');}
 function quoteTarget(P,pi,q,self){const key=flatText(q).slice(0,12);
   for(let k=pi-1;k>=0;k--){const x=P[k];if(x.type==='msg'&&key&&flatText(x.content).includes(key))return x.sender;}
@@ -1169,6 +1171,7 @@ function render(limit){
     });
     flush();
     if(!bubbles.length){const b=document.createElement('div');b.className='bub';bubbles.push(b);}
+    if(qMode==='in'){const qb=bubbles.find(x=>x.querySelector('.rq'));if(qb)qb.classList.add('hasq');}
     bubbles.forEach((b,bi)=>{const wrap=document.createElement('div');
       wrap.className='bubwrap'+(bi===0?' bw-first':'')+(bi===bubbles.length-1?' bw-last':'');
       wrap.appendChild(b);col.appendChild(wrap);});
@@ -1204,6 +1207,7 @@ function render(limit){
   sc.querySelectorAll('.addpic').forEach(el=>el.onclick=()=>el.dataset.stk!=null?pickStk(parseInt(el.dataset.stk)):pickSlot(parseInt(el.dataset.slot)));
   sc.querySelectorAll('.bub.pic .del').forEach(el=>el.onclick=ev=>{ev.stopPropagation();delete state.slotPhotos[parseInt(el.dataset.del)];render();});
   sc.querySelectorAll('.bub.stk .del').forEach(el=>el.onclick=ev=>{ev.stopPropagation();delete state.stkPhotos[parseInt(el.dataset.sdel)];render();});
+  fitQuotes(sc);
   const fxRows=rows.filter(r=>r.dataset.fx);
   if(limit==null){
     $('#fxPlayBtn').disabled=!fxRows.length;
@@ -1212,6 +1216,14 @@ function render(limit){
   return sc;
 }
 
+// 답장 인용문이 칸보다 길면 글자를 줄이고 말줄임표를 붙인다
+function fitQuotes(root){root.querySelectorAll('.rq>b,.rq>span,.qbub,.qline>span').forEach(el=>{
+  const full=el.dataset.full||el.textContent;el.dataset.full=full;el.textContent=full;
+  if(el.scrollWidth<=el.clientWidth+1)return;
+  let lo=0,hi=full.length;
+  while(lo<hi){const mid=(lo+hi+1)>>1;el.textContent=full.slice(0,mid).replace(/\s+$/,'')+'…';
+    if(el.scrollWidth<=el.clientWidth+1)lo=mid;else hi=mid-1;}
+  el.textContent=full.slice(0,lo).replace(/\s+$/,'')+'…';});}
 function drawStill(rows){msgsEl.querySelectorAll('.fxlayer').forEach(x=>x.remove());
   const still=state.fxStill&&rows.filter(r=>FX_SCREEN[r.dataset.fx]).pop();
   if(still){const L=makeLayer();buildScreen(L,still.dataset.fx,still)(FX_SCREEN[still.dataset.fx].still,true);}}
