@@ -668,6 +668,7 @@ textarea.ooc{min-height:150px;padding:10px 12px;font-size:12.5px;line-height:1.6
           <div class="toggle" id="readRow"><span id="readLabel">읽음 표시</span><button class="sw-toggle" id="readToggle" role="switch" aria-checked="false" aria-labelledby="readLabel"></button></div>
           <div class="toggle"><span id="phoneLabel">휴대폰 화면처럼<small>위에 상태바, 아래에 입력창을 붙여요</small></span><button class="sw-toggle" id="phoneToggle" role="switch" aria-checked="false" aria-labelledby="phoneLabel"></button></div>
           <div class="toggle"><span id="fxStillLabel">화면 효과를 사진에 남기기<small>PNG에 마지막 화면 효과가 멈춘 장면으로 들어가요</small></span><button class="sw-toggle on" id="fxStillToggle" role="switch" aria-checked="true" aria-labelledby="fxStillLabel"></button></div>
+          <div class="toggle"><span id="roundLabel">모서리 둥글게 저장<small>PNG와 이미지 복사에서 카드 모서리를 메신저처럼 둥글게 잘라요</small></span><button class="sw-toggle on" id="roundToggle" role="switch" aria-checked="true" aria-labelledby="roundLabel"></button></div>
           <div class="toggle"><span id="splitLabel">길면 나눠서 저장<small>PNG를 한 화면 높이씩 잘라 여러 장으로 저장해요</small></span><button class="sw-toggle" id="splitToggle" role="switch" aria-checked="false" aria-labelledby="splitLabel"></button></div>
           <div class="subopt" id="splitOpt" hidden><div class="seg" id="splitSize" role="group" aria-label="한 장 높이"><button data-h="480">짧게</button><button data-h="620" class="on">보통</button><button data-h="800">길게</button></div></div>
         </div>
@@ -824,7 +825,7 @@ const OOC_TEMPLATE=`*[OOC: 이전 RP 중지. 새로운 상황 전개. NPC와 PC 
 
 메시지 내용에는 PC와 NPC의 감정이나 상태에 따라 HTML 형식 사용 가능. 필요할 경우 오타를 내도 괜찮다.]*`;
 
-const state={skin:'kakao',theme:'rose',showRead:false,phone:false,meName:'',roomName:'',roomEdited:false,statusMsg:'',fx:{},fxStill:true,parsed:[],parts:[],avatars:{},roomAvatar:'',slotPhotos:{},stkPhotos:{},wallpaper:'',wallDim:30,split:false,splitH:620};
+const state={skin:'kakao',theme:'rose',showRead:false,phone:false,meName:'',roomName:'',roomEdited:false,statusMsg:'',fx:{},fxStill:true,parsed:[],parts:[],avatars:{},roomAvatar:'',slotPhotos:{},stkPhotos:{},wallpaper:'',wallDim:30,split:false,splitH:620,round:true};
 const $=s=>document.querySelector(s);
 const card=$('#chatCard');
 const msgsEl=$('#msgs');
@@ -929,6 +930,7 @@ bindToggle('#readToggle','showRead');
 bindToggle('#phoneToggle','phone');
 bindToggle('#fxStillToggle','fxStill');
 bindToggle('#splitToggle','split');
+bindToggle('#roundToggle','round');
 $('#splitToggle').addEventListener('click',()=>{$('#splitOpt').hidden=!state.split;});
 $('#splitSize').onclick=e=>{const b=e.target.closest('button');if(!b)return;state.splitH=+b.dataset.h;syncSplit();};
 function syncSplit(){$('#splitSize').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.h===state.splitH));$('#splitOpt').hidden=!state.split;}
@@ -1245,11 +1247,19 @@ $('#copyOoc').onclick=()=>{copyText(OOC_TEMPLATE).then(()=>toast('OOC 양식을 
 function capture(scale){return html2canvas(card,{scale,backgroundColor:palette().bg,useCORS:true,logging:false,scrollX:0,scrollY:0});}
 // 다 쓴 캔버스 메모리 즉시 반납 (아이폰 Safari 캔버스 한도 대응)
 function freeCanvas(c){if(c){c.width=0;c.height=0;}}
+// 저장 이미지 모서리를 카드처럼 둥글게 (바깥은 투명)
+function roundCanvas(c,scale){if(!state.round)return c;
+  const r=(state.skin==='retro'?[9,9,5,5]:[26,26,26,26]).map(v=>Math.min(v*scale,c.width/2,c.height/2));
+  const o=document.createElement('canvas');o.width=c.width;o.height=c.height;const x=o.getContext('2d');
+  const w=c.width,h=c.height;x.beginPath();
+  x.moveTo(r[0],0);x.lineTo(w-r[1],0);x.arcTo(w,0,w,r[1],r[1]);x.lineTo(w,h-r[2]);x.arcTo(w,h,w-r[2],h,r[2]);
+  x.lineTo(r[3],h);x.arcTo(0,h,0,h-r[3],r[3]);x.lineTo(0,r[0]);x.arcTo(0,0,r[0],0,r[0]);x.closePath();
+  x.clip();x.drawImage(c,0,0);freeCanvas(c);return o;}
 async function snap(scale){
   render();
   card.classList.add('exporting');
   try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;
-    return await capture(scale);}
+    return roundCanvas(await capture(scale),scale);}
   finally{card.classList.remove('exporting');}}
 function fileBase(){return state.roomName||'문자';}
 // 긴 대화를 한 화면 높이씩 잘라 여러 장 찍기
@@ -1257,7 +1267,7 @@ async function snapPages(scale,H){
   const sc=render();card.classList.add('exporting');
   try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;
     const total=sc.offsetHeight;
-    if(total<=H*1.1)return [await capture(scale)];
+    if(total<=H*1.1)return [roundCanvas(await capture(scale),scale)];
     const kids=[...sc.children];const pos=kids.map(el=>[el.offsetTop,el.offsetTop+el.offsetHeight]);const starts=[0];let start=0;
     kids.forEach(el=>{const top=el.offsetTop,bot=top+el.offsetHeight;
       if(bot+16-start>H&&top-10>start){start=top-10;starts.push(start);}});
@@ -1266,7 +1276,7 @@ async function snapPages(scale,H){
     for(const st of starts){sc.style.marginTop=(-st)+'px';
       kids.forEach((el,k)=>{const top=pos[k][0],bot=pos[k][1];el.style.visibility=(top>=st-12&&(bot+16-st<=H||top-st<=12))?'':'hidden';});
       drawStill(fxRows.filter(x=>x.top>=st&&x.top<st+H).map(x=>x.r));
-      out.push(await capture(scale));}
+      out.push(roundCanvas(await capture(scale),scale));}
     return out;}
   finally{msgsEl.style.height='';card.classList.remove('exporting');render();}}
 function download(url,name){const a=document.createElement('a');a.download=name;a.href=url;document.body.appendChild(a);a.click();a.remove();}
@@ -1500,7 +1510,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFx();});
 const PKEY='msggen.presets.v1';
 function loadPresets(){try{return JSON.parse(localStorage.getItem(PKEY)||'[]');}catch(e){return [];}}
 function storePresets(list){try{localStorage.setItem(PKEY,JSON.stringify(list));return true;}catch(e){toast('저장 공간이 부족해요. 사진이 많은 프리셋을 지워 주세요');return false;}}
-const PFIELDS=['skin','theme','phone','showRead','fxStill','split','splitH','wallpaper','wallDim','avatars','roomAvatar','roomName','meName','statusMsg'];
+const PFIELDS=['skin','theme','phone','showRead','fxStill','round','split','splitH','wallpaper','wallDim','avatars','roomAvatar','roomName','meName','statusMsg'];
 function themeSwatch(k){if(k==='native')return `linear-gradient(135deg,#e6e6ea 50%,#9a9aa2 50%)`;const t=THEMES.find(x=>x.key===k);if(!t)return '#ccc';return t.dark?`linear-gradient(135deg,${t.bg} 50%,${t.sw} 50%)`:t.sw;}
 function renderPresets(){const box=$('#plist');const list=loadPresets();box.className=list.length?'plist':'';
   if(!list.length){box.innerHTML='<div class="pempty">아직 저장한 프리셋이 없어요</div>';return;}
@@ -1515,7 +1525,7 @@ function applyPreset(p){const d=p.data;
   PFIELDS.forEach(k=>{if(d[k]!==undefined)state[k]=JSON.parse(JSON.stringify(d[k]));});
   state.avatars=Object.assign({},state.avatars);
   state.roomEdited=!!d.roomName;$('#roomName').value=state.roomName||'';$('#statusMsg').value=state.statusMsg||'';
-  [['#readToggle','showRead'],['#phoneToggle','phone'],['#fxStillToggle','fxStill'],['#splitToggle','split']].forEach(([sel,k])=>{const el=$(sel);el.classList.toggle('on',!!state[k]);el.setAttribute('aria-checked',!!state[k]);});
+  [['#readToggle','showRead'],['#phoneToggle','phone'],['#fxStillToggle','fxStill'],['#roundToggle','round'],['#splitToggle','split']].forEach(([sel,k])=>{const el=$(sel);el.classList.toggle('on',!!state[k]);el.setAttribute('aria-checked',!!state[k]);});
   syncSplit();renderSkins();renderSwatches();syncOptions();applyTheme();refreshWallUI();refreshParts();render();
   closePreset();toast(`'${p.name}' 프리셋을 불러왔어요`);}
 $('#presetSave').onclick=()=>{const inp=$('#presetName');const name=inp.value.trim()||`프리셋 ${loadPresets().length+1}`;
